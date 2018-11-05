@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <Windows.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define ENC 1
 #define DEC 0
@@ -49,11 +50,18 @@ void strtohex_div2(DES_LONG *ctr, char *str)
 	}
 }
 
-void xoring(DES_LONG *xubject, DES_LONG *plain_or_crypt, DES_LONG *enc_result)
+void xoring(DES_LONG *xubject, DES_LONG *plain_or_crypt, DES_LONG *enc_result, int des_length)
 {
-	for (int i = 0; i < 2; i++) {
-		xubject[i] = plain_or_crypt[i] ^ enc_result[i];
-		//printf("plain_or_crypt[%d] = 0x%x | enc_result[%d] = 0x%x \n", i, plain_or_crypt[i], i, enc_result[i]);
+	int len2_cnt = 0;
+	int i;
+
+	for (i = 0; i < des_length; i++, len2_cnt++) {
+		if (len2_cnt == 2)
+			len2_cnt = 0;
+
+		xubject[i] = plain_or_crypt[i] ^ enc_result[len2_cnt];
+
+		//printf("plain_or_crypt[%d] = 0x%x | enc_result[%d] = 0x%x \n", i, plain_or_crypt[i], len2_cnt, enc_result[len2_cnt]);
 		//printf("xubject[%d] = 0x%x\n", i, xubject[i]);
 	}
 }
@@ -85,11 +93,10 @@ int main(int argc, char *argv[])
 	DES_LONG counter[2] = { 0x0, 0x0 };
 	unsigned char key[SLEN];
 	DES_key_schedule schedule;
-	DES_LONG plain_text[2] = { 0x0, 0x0 };
-	DES_LONG cipher_result[2] = { 0x0, 0x0 };
-	DES_LONG plain_result[2] = { 0x0, 0x0 };
+	DES_LONG *plain_text;
+	DES_LONG *cipher_result;
 	FILE *fp_plain, *fp_des;
-	char plain_tmp_text[17] = { 0 };
+	int input_file_size = 0, alloc_size = 0;
 
 	// command line arguments exception handling(1)
 	if (input_handling(argc, &argv[0]) == 1) {
@@ -108,18 +115,30 @@ int main(int argc, char *argv[])
 	strtohex_div2(&counter[0], argv[1]); // counter value
 	strtohex(&key[0], argv[2]); // key value
 
-								// save the plain text value into a DES_LONG variable.
-								// and transform it into another variable type.
-	fscanf_s(fp_plain, "%s", &plain_tmp_text[0], sizeof(plain_tmp_text));
-	if (strlen(plain_tmp_text) != 16) { // exception handling(3)
-		printf("Length of the plain text must be 16bytes.\nprocess terminated.\n");
-		printf("strlen(plain_tmp_text) = %d\n", strlen(plain_tmp_text));
-		system("pause");
-		return 1;
-	}
-	strtohex_div2(&plain_text[0], &plain_tmp_text[0]);
+	//get the input file size
+	fseek(fp_plain, 0L, SEEK_END);
+	input_file_size = ftell(fp_plain);
+	rewind(fp_plain);	// let file pointer go to the front
 
-	printf("Plain Text : 0x%x, 0x%x \n", plain_text[0], plain_text[1]);
+	// Dynamic allocation of the DES_LONG arrays
+	// as the size of the input text
+	if (input_file_size % 8 != 0) {
+		alloc_size = input_file_size / 8 + 1;
+	}
+	else {
+		alloc_size = input_file_size / 8;
+	}
+	plain_text = (DES_LONG *)malloc(sizeof(DES_LONG)*(alloc_size));
+	cipher_result = (DES_LONG *)malloc(sizeof(DES_LONG)*(alloc_size));
+
+	// save the plain text value into a DES_LONG variable.
+	// and transform it into another variable type.
+	printf("Plain Text : ");
+	for (int i = 0; i < alloc_size; i++) {
+		fscanf_s(fp_plain, "%8x", &plain_text[i], sizeof(DES_LONG));
+		printf("0x%8x ", plain_text[i]);
+	}
+	printf("\n");
 	printf("Counter : 0x%x, 0x%x \n", counter[0], counter[1]);
 	printf("Key : ");
 	for (int i = 0; i < SLEN; i++) {
@@ -127,7 +146,7 @@ int main(int argc, char *argv[])
 	}
 	printf("\n\n");
 
-	// exception handling(4)
+	// exception handling(3)
 	// check if the key is vaild or not
 	if ((k = DES_set_key_checked(&key, &schedule)) != 0) {
 		printf("\nkey error : %d \nprocess terminated.\n", k);
@@ -141,18 +160,13 @@ int main(int argc, char *argv[])
 
 	// xor with the plain text. 
 	// therefore, the cipher text is made. 
-	xoring(&cipher_result[0], &plain_text[0], &counter[0]); // counter + key
-	printf("cipher_result : 0x%x, 0x%x \n", cipher_result[0], cipher_result[1]);
+	xoring(&cipher_result[0], &plain_text[0], &counter[0], alloc_size); // counter + key
+	printf("Cipher_result : ");
+	for (int i = 0; i < alloc_size; i++) {
+		fprintf_s(fp_des, "%8x", cipher_result[i], sizeof(DES_LONG));
+		printf("0x%8x ", cipher_result[i]);
+	}
 	printf("\n");
-
-	fprintf_s(fp_des, "%x%x", cipher_result[0], cipher_result[1]);
-
-	//-------------------------------------------------------------------------------------
-
-	//DES_encrypt1(&counter[0], &schedule, DEC);
-
-	//xoring(&plain_result[0], &cipher_result[0], &counter[0]); // counter + key
-	//printf("plain_result : %x %x\n", plain_result[0], plain_result[1]);
 
 	system("pause");
 

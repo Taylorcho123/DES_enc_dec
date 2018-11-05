@@ -1,1 +1,6 @@
-﻿  JayEChoEnc.vcxproj -> C:\Users\JayCho\source\repos\JayEChoEnc\Debug\JayEChoEnc.exe
+﻿  JayEChoEnc.cpp
+c:\users\jaycho\source\repos\encdec\jayechoenc\jayechoenc\jayechoenc.cpp(138): warning C4474: 'fscanf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
+  c:\users\jaycho\source\repos\encdec\jayechoenc\jayechoenc\jayechoenc.cpp(138): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
+c:\users\jaycho\source\repos\encdec\jayechoenc\jayechoenc\jayechoenc.cpp(166): warning C4474: 'fprintf_s' : 서식 문자열에 전달된 인수가 너무 많습니다.
+  c:\users\jaycho\source\repos\encdec\jayechoenc\jayechoenc\jayechoenc.cpp(166): note: 자리 표시자 및 해당 매개 변수에는 variadic 인수가 1개 필요하지만 2개가 제공되었습니다.
+  JayEChoEnc.vcxproj -> C:\Users\JayCho\source\repos\EncDec\JayEChoEnc\Debug\JayEChoEnc.exe
