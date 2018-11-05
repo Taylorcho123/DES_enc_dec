@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <Windows.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define ENC 1
 #define DEC 0
@@ -162,7 +163,7 @@ int main(int argc, char *argv[])
 	xoring(&plain_result[0], &cipher_result[0], &counter[0], alloc_size); // counter + key
 	printf("Plain_result : ");
 	for (int i = 0; i < alloc_size; i++) {
-		fprintf_s(fp_result, "%8x", plain_result[i], sizeof(DES_LONG));
+		fprintf_s(fp_result, "%x", plain_result[i], sizeof(DES_LONG));
 		printf("0x%8x ", plain_result[i]);
 	}
 	printf("\n");

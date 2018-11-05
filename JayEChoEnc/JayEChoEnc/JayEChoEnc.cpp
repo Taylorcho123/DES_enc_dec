@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 	xoring(&cipher_result[0], &plain_text[0], &counter[0], alloc_size); // counter + key
 	printf("Cipher_result : ");
 	for (int i = 0; i < alloc_size; i++) {
-		fprintf_s(fp_des, "%8x", cipher_result[i], sizeof(DES_LONG));
+		fprintf_s(fp_des, "%x", cipher_result[i], sizeof(DES_LONG));
 		printf("0x%8x ", cipher_result[i]);
 	}
 	printf("\n");
